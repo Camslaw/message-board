@@ -1,20 +1,28 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 
-Window {
-    width: 300
-    height: 200
+ApplicationWindow {
     visible: true
-    title: "Hello World"
+    width: 800
+    height: 600
+    color: "#424549"
+    title: "Message Board"
 
-    ColumnLayout {
-        anchors.fill:  parent
+    StackView {
+        id: stackView
+        anchors.fill: parent
 
-        Text {
-            id: text
-            text: "Hello World"
-            Layout.alignment: Qt.AlignHCenter
+        initialItem: LoginScreen { // Start with the login screen
+            onLoginSuccess: stackView.push(mainApp)
+        }
+
+        Component {
+            id: mainApp
+            MessageBoard {
+                onSignOut: {
+                    stackView.pop()
+                }
+            }
         }
     }
 }
