@@ -2,7 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Item {
-    signal loginSuccess()  // Signal to notify successful login
+    signal loginPart1()
+    signal loginPart2()
 
     anchors.fill: parent
 
@@ -14,7 +15,7 @@ Item {
         spacing: 20
 
         Text {
-            text: "Welcome to the Message Board!\n"
+            text: "Welcome to the Message Board!\nEnter a username and select the part"
             font.pointSize: 24
             color: "white"
             horizontalAlignment: Text.AlignHCenter
@@ -31,27 +32,46 @@ Item {
             width: 300
         }
 
-        Button {
-            background: Rectangle {
-                radius: 8
-            }
-            text: "Login"
-            onClicked: {
-                if (usernameInput.text === "") {
-                    errorMessage.text = "Username cannot be empty."
-                } else if (takenUsernames.includes(usernameInput.text)) {
-                    errorMessage.text = "Username already taken."
-                } else {
-                    errorMessage.text = ""
-                    loginSuccess()  // Emit the signal to proceed to the main app
-                }
-            }
-        }
-
         Text {
             id: errorMessage
             color: "red"
             font.pointSize: 14
+        }
+
+        Row {
+            spacing: 20
+            Button {
+                background: Rectangle {
+                    radius: 8
+                }
+                text: "Part 1"
+                onClicked: {
+                    if (usernameInput.text === "") {
+                        errorMessage.text = "Username cannot be empty."
+                    } else if (takenUsernames.includes(usernameInput.text)) {
+                        errorMessage.text = "Username already taken."
+                    } else {
+                        errorMessage.text = ""
+                        loginPart1()  // Emit the signal to proceed to the main app
+                    }
+                }
+            }
+            Button {
+                background: Rectangle {
+                    radius: 8
+                }
+                text: "Part 2"
+                onClicked: {
+                    if (usernameInput.text === "") {
+                        errorMessage.text = "Username cannot be empty."
+                    } else if (takenUsernames.includes(usernameInput.text)) {
+                        errorMessage.text = "Username already taken."
+                    } else {
+                        errorMessage.text = ""
+                        loginPart2()  // Emit the signal to proceed to the main app
+                    }
+                }
+            }
         }
     }
 }
