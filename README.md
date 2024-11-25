@@ -31,7 +31,7 @@ This project implements a simple bulletin board system for **CS4065: Computer Ne
 
 ### Start the server
 1. Navigate to the project directory:
-2. Compile the Java server code:
+2. Compile the Java code:
     ```javac -cp "server/lib/gson-2.11.1-SNAPSHOT.jar" server/src/*.java -d server/build```
 3.  Start the server:
     ```java -cp "server/lib/gson-2.11.1-SNAPSHOT.jar;server/build" server.Main```
