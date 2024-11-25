@@ -1,2 +1,4 @@
 build*
 .vscode
+env*
+*_pycache_*

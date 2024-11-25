@@ -52,6 +52,7 @@ Item {
                         errorMessage.text = "Username already taken."
                     } else {
                         errorMessage.text = ""
+                        backend.handleLoginRequest(usernameInput.text) // Call backend directly
                         loginPart1()  // Emit the signal to proceed to the main app
                     }
                 }
@@ -68,8 +69,18 @@ Item {
                         errorMessage.text = "Username already taken."
                     } else {
                         errorMessage.text = ""
+                        backend.handleLoginRequest(usernameInput.text) // Call backend directly
                         loginPart2()  // Emit the signal to proceed to the main app
                     }
+                }
+            }
+            Button {
+                background: Rectangle {
+                    radius: 8
+                }
+                text: "Exit"
+                onClicked: {
+                    Qt.quit(); // Closes the application
                 }
             }
         }
