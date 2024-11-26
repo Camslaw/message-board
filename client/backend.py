@@ -25,8 +25,17 @@ class Backend(QObject):
         }
         receive_data(callbacks)
 
+    @pyqtSlot(str, str)
+    def handleLoginRequest1(self, username, group):
+        # Send login request to the server
+        data = {
+            "type": "login",
+            "data": {"username": username, "group": group}
+        }
+        send_json(client_socket, data)
+
     @pyqtSlot(str)
-    def handleLoginRequest(self, username):
+    def handleLoginRequest2(self, username):
         # Send login request to the server
         data = {
             "type": "login",
@@ -35,10 +44,19 @@ class Backend(QObject):
         send_json(client_socket, data)
 
     @pyqtSlot()
-    def handleLogoutRequest(self):
+    def handleLogoutRequestGroup(self):
         # Send logout request to the server
         data = {
             "type": "logout",
+            "data": {"group": "public"} # specify group to leave
+        }
+        send_json(client_socket, data)
+
+    @pyqtSlot()
+    def handleLogoutRequestSolo(self):
+        # Send logout request to the server
+        data = {
+            "type": "logout" # specify group to leave
         }
         send_json(client_socket, data)
 

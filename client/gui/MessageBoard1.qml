@@ -49,7 +49,7 @@ Item {
                 text: "Sign Out (go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    backend.handleLogoutRequest();
+                    backend.handleLogoutRequestGroup();
                     signOut1();
                 }
             }

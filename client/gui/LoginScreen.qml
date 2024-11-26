@@ -56,7 +56,7 @@ Item {
                     } else {
                         errorMessage.text = ""
                         partSelection = "part1";
-                        backend.handleLoginRequest(usernameInput.text) // Call backend directly
+                        backend.handleLoginRequest1(usernameInput.text, "public") // Call backend directly
                     }
                 }
             }
@@ -73,7 +73,7 @@ Item {
                     } else {
                         errorMessage.text = ""
                         partSelection = "part2";
-                        backend.handleLoginRequest(usernameInput.text) // Call backend directly
+                        backend.handleLoginRequest2(usernameInput.text) // Call backend directly
                     }
                 }
             }

@@ -32,8 +32,8 @@ public class ClientHandler implements Runnable {
             System.out.println("Connection error: " + e.getMessage());
         } finally {
             if (username != null) {
-                groupManager.removeUser(username);
-                System.out.printf("DEBUG: Connection closed. Username '%s' removed.\n", username);
+                groupManager.removeUserFromGroup(username, "public");
+                System.out.printf("DEBUG: %s's application closed.\n", username);
             }
             try {
                 clientSocket.close();
@@ -44,12 +44,14 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleRequest(Message message, PrintWriter writer) {
+        String logoutGroup = message.getData().getGroup(); // Get group name
         switch (message.getType()) {
             case "login": // Handle user sign-in
                 username = message.getData().getUsername();
+                String group = message.getData().getGroup();
 
                 // Check if username is already in use
-                if (!groupManager.addUser(username)) {
+                if (!groupManager.addUserToGroup(username, group)) {
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
                         "message", "Username '" + username + "' is already taken"
@@ -58,28 +60,28 @@ public class ClientHandler implements Runnable {
                     return;
                 }
                 // Debug message
-                System.out.printf("DEBUG: User '%s' signed in.\n", username);
+                System.out.printf("DEBUG: User '%s' signed in and joined group '%s'.\n", username, group);
 
                 writer.println(gson.toJson(Map.of(
                     "status", "success",
-                    "message", "Signed in as " + username
+                    "message", "Signed in as " + username + " in group " + group
                 )));
                 break;
 
             case "logout": // Handle explicit logout
                 if (username != null) {
-                    groupManager.removeUser(username);
+                    groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
-                    System.out.printf("DEBUG: User '%s' logged out.\n", username);
+                    System.out.printf("DEBUG: User '%s' logged out and left group '%s'.\n", username, logoutGroup);
                     username = null; // Clear username to prevent double removal
                 }
                 break;
 
             case "exit": // Handle user sign-out
                 if (username != null) {
-                    groupManager.removeUser(username);
+                    groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Goodbye!")));
-                    System.out.printf("DEBUG: User '%s' signed out.\n", username);
+                    System.out.printf("DEBUG: User '%s' exited the client and left group '%s'.\n", username, logoutGroup);
                 }
                 break;
 

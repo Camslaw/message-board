@@ -25,6 +25,25 @@ public class GroupManager {
         }
     }
 
+    public synchronized boolean addUserToGroup(String username, String group) {
+        groups.putIfAbsent(group, new HashSet<>());
+        if (signedInUsers.contains(username)) {
+            System.out.printf("DEBUG: AddUserToGroup failed. Username '%s' is already in group '%s'.\n", username, group);
+            return false;
+        }
+        signedInUsers.add(username);
+        groups.get(group).add(username);
+        System.out.printf("DEBUG: User '%s' added to group '%s'.\n", username, group);
+        return true;
+    }
+
+    public synchronized void removeUserFromGroup(String username, String group) {
+        if (groups.containsKey(group)) {
+            groups.get(group).remove(username);
+            System.out.printf("DEBUG: User '%s' removed from group '%s'.\n", username, group);
+        }
+        signedInUsers.remove(username);
+    }
 }
 
 
