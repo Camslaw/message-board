@@ -53,7 +53,6 @@ Item {
                     } else {
                         errorMessage.text = ""
                         backend.handleLoginRequest(usernameInput.text) // Call backend directly
-                        loginPart1()  // Emit the signal to proceed to the main app
                     }
                 }
             }
@@ -70,7 +69,6 @@ Item {
                     } else {
                         errorMessage.text = ""
                         backend.handleLoginRequest(usernameInput.text) // Call backend directly
-                        loginPart2()  // Emit the signal to proceed to the main app
                     }
                 }
             }
@@ -83,6 +81,19 @@ Item {
                     Qt.quit(); // Closes the application
                 }
             }
+        }
+    }
+    Connections {
+        target: backend
+
+        // Display error message from backend
+        function onLoginError(message) {
+            errorMessage.text = message;
+        }
+
+        // Transition to Part 1 on successful login
+        function onLoginSuccess() {
+            loginPart1();
         }
     }
 }

@@ -4,7 +4,7 @@ import QtQuick.Controls 2.15
 Item {
     anchors.fill: parent
 
-    signal signOut()  // Signal to notify when the user wants to sign out
+    signal signOut2()  // Signal to notify when the user wants to sign out
 
     Row {
         anchors.fill: parent
@@ -119,7 +119,8 @@ Item {
                 text: "Sign Out (go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    signOut()
+                    backend.handleLogoutRequest();
+                    signOut2();
                 }
             }
 

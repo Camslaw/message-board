@@ -31,6 +31,10 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.out.println("Connection error: " + e.getMessage());
         } finally {
+            if (username != null) {
+                groupManager.removeUser(username);
+                System.out.printf("DEBUG: Connection closed. Username '%s' removed.\n", username);
+            }
             try {
                 clientSocket.close();
             } catch (IOException e) {
@@ -60,6 +64,15 @@ public class ClientHandler implements Runnable {
                     "status", "success",
                     "message", "Signed in as " + username
                 )));
+                break;
+
+            case "logout": // Handle explicit logout
+                if (username != null) {
+                    groupManager.removeUser(username);
+                    writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
+                    System.out.printf("DEBUG: User '%s' logged out.\n", username);
+                    username = null; // Clear username to prevent double removal
+                }
                 break;
 
             case "exit": // Handle user sign-out
