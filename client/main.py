@@ -1,11 +1,9 @@
 import sys
 import os
-import threading
-os.environ["QT_QUICK_CONTROLS_STYLE"] = "Basic"
+os.environ["QT_QUICK_CONTROLS_STYLE"] = "Fusion"
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtQml import QQmlApplicationEngine
-from PyQt6.QtCore import QObject, pyqtSlot
-from protocol import client_socket, send_json, receive_data
+from protocol import client_socket
 from backend import Backend
 
 def main():

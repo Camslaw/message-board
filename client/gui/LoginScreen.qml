@@ -2,10 +2,13 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Item {
+    width: stackView.width
+    height: stackView.height
+    
     signal loginPart1()
     signal loginPart2()
 
-    anchors.fill: parent
+    property string partSelection: ""
 
     // Mock username list
     property var takenUsernames: ["admin", "user1", "guest"]
@@ -52,6 +55,7 @@ Item {
                         errorMessage.text = "Username already taken."
                     } else {
                         errorMessage.text = ""
+                        partSelection = "part1";
                         backend.handleLoginRequest(usernameInput.text) // Call backend directly
                     }
                 }
@@ -68,6 +72,7 @@ Item {
                         errorMessage.text = "Username already taken."
                     } else {
                         errorMessage.text = ""
+                        partSelection = "part2";
                         backend.handleLoginRequest(usernameInput.text) // Call backend directly
                     }
                 }
@@ -91,9 +96,12 @@ Item {
             errorMessage.text = message;
         }
 
-        // Transition to Part 1 on successful login
         function onLoginSuccess() {
-            loginPart1();
+            if (partSelection === "part1") {
+                loginPart1()
+            } else if (partSelection === "part2") {
+                loginPart2()
+            }
         }
     }
 }

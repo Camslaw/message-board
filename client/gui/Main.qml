@@ -10,17 +10,16 @@ ApplicationWindow {
 
     StackView {
         id: stackView
-        anchors.fill: parent
+        width: parent.width
+        height: parent.height
 
-        delegate: Item {}
-
-        initialItem: loginScreen
+        Component.onCompleted: stackView.push(loginScreen);
 
         Component {
             id: loginScreen
             LoginScreen {
-                onLoginPart1: stackView.push(part1App)
-                onLoginPart2: stackView.push(part2App)
+                onLoginPart1: stackView.push(part1App);
+                onLoginPart2: stackView.push(part2App);
             }
         }
 
@@ -28,9 +27,8 @@ ApplicationWindow {
             id: part1App
             MessageBoard1 {
                 onSignOut1: {
-                    console.debug("Before pop: " + stackView.depth)  // Check the stack depth
-                    stackView.pop()
-                    console.debug("After pop: " + stackView.depth)  // Confirm if stackView returned to LoginScreen
+                    stackView.clear();
+                    stackView.push(loginScreen);
                 }
             }
         }
@@ -39,9 +37,8 @@ ApplicationWindow {
             id: part2App
             MessageBoard2 {
                 onSignOut2: {
-                    console.debug("Before pop: " + stackView.depth)  // Check the stack depth
-                    stackView.pop()
-                    console.debug("After pop: " + stackView.depth)  // Confirm if stackView returned to LoginScreen
+                    stackView.clear();
+                    stackView.push(loginScreen);
                 }
             }
         }

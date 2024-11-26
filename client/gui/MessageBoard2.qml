@@ -2,7 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Item {
-    anchors.fill: parent
+    width: stackView.width
+    height: stackView.height
 
     signal signOut2()  // Signal to notify when the user wants to sign out
 
@@ -75,7 +76,6 @@ Item {
             Row {
                 spacing: 10
                 anchors.horizontalCenter: parent.horizontalCenter
-                // width: parent.width * 0.50
 
                 TextField {
                     id: groupNameInput
@@ -85,7 +85,6 @@ Item {
                     }
                     color: "white"
                     placeholderText: "Enter group name"
-                    // width: parent.width * 0.6
                 }
 
                 Button {
@@ -111,7 +110,6 @@ Item {
                 }
             }
 
-            // Placeholder Buttons for Additional Controls
             Button {
                 background: Rectangle {
                     radius: 8
