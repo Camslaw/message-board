@@ -18,53 +18,6 @@ Item {
             spacing: 10
 
             Text {
-                text: "Groups"
-                font.pointSize: 18
-                color: "white"
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-            ListView {
-                id: groupList
-                width: parent.width * 0.25
-                height: parent.height * 0.7
-                model: groupModel
-                delegate: Item {
-                    width: parent.width
-                    height: 40
-                    Row {
-                        spacing: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
-                        anchors.leftMargin: 20
-
-                        Button {
-                            background: Rectangle {
-                                radius: 8
-                            }
-                            text: joined ? "Leave" : "Join"
-                            font.pixelSize: 12
-                            onClicked: {
-                                groupModel.setProperty(index, "joined", !joined)
-
-                                if (groupModel.get(index).joined) {
-                                    messageBox.text += `Welcome to ${name}!\n`;
-                                } else {
-                                    messageBox.text += `You have left ${name}.\n`;
-                                }
-                            }
-                        }
-                        
-                        Text {
-                            text: name
-                            color: joined ? "lightgreen" : "white"  // Change color if joined
-                            font.pointSize: 14
-                        }
-                    }
-                }
-            }
-
-            Text {
                 id: errorMessage
                 text: ""
                 color: "red"
@@ -84,14 +37,7 @@ Item {
                     text: "Check public users"
                     onClicked: {
                         let publicGroup = groupModel.get(0)
-
-                        if (publicGroup.joined)
-                        {
-                            messageBox.text += `Users in public: Alice, Bob, Charlie\n`;
-                            errorMessage.text = "";
-                        } else {
-                            errorMessage.text = "Must join the public group before checking its users";
-                        }
+                        messageBox.text += `Users in public: Alice, Bob, Charlie\n`;
                     }
                 }
             }
@@ -104,7 +50,6 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     backend.handleLogoutRequest();
-                    console.debug("Emitting signOut1");
                     signOut1();
                 }
             }
