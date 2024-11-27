@@ -69,11 +69,13 @@ public class ClientHandler implements Runnable {
                 break;
 
             case "logout": // Handle explicit logout
-                if (username != null) {
+                if (username != null && logoutGroup != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
                     System.out.printf("DEBUG: User '%s' logged out and left group '%s'.\n", username, logoutGroup);
                     username = null; // Clear username to prevent double removal
+                } else {
+                    writer.println(gson.toJson(Map.of("status", "error", "message", "Logout failed: Missing data")));
                 }
                 break;
 
