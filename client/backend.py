@@ -7,6 +7,7 @@ import atexit
 class Backend(QObject):
     loginError = pyqtSignal(str)  # Signal for login errors
     loginSuccess = pyqtSignal()
+    notification = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -21,7 +22,8 @@ class Backend(QObject):
         # Pass appropriate callbacks to `receive_data`
         callbacks = {
             "error": self.loginError.emit,  # Emits an error signal for the UI
-            "success": self.loginSuccess.emit  # Emits a success signal for the UI
+            "success": self.loginSuccess.emit,  # Emits a success signal for the UI
+            "notification": lambda msg: (print(f"DEBUG: Emitting notification: {msg}"), self.notification.emit(msg))
         }
         receive_data(callbacks)
 
@@ -57,6 +59,15 @@ class Backend(QObject):
         # Send logout request to the server
         data = {
             "type": "logout" # specify group to leave
+        }
+        send_json(client_socket, data)
+
+    @pyqtSlot(str)
+    def requestUserList(self, group):
+        # Send a JSON request to the server for the user list
+        data = {
+            "type": "user_list",
+            "data": {"group": group}
         }
         send_json(client_socket, data)
 

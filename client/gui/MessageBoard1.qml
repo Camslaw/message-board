@@ -36,8 +36,7 @@ Item {
                     }
                     text: "Check public users"
                     onClicked: {
-                        let publicGroup = groupModel.get(0)
-                        messageBox.text += `Users in public: Alice, Bob, Charlie\n`;
+                        backend.requestUserList("public");
                     }
                 }
             }
@@ -46,7 +45,7 @@ Item {
                 background: Rectangle {
                     radius: 8
                 }
-                text: "Sign Out (go back to login screen)"
+                text: "Sign Out (leave group and go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     backend.handleLogoutRequestGroup();
@@ -223,5 +222,17 @@ Item {
     ListModel {
         id: groupModel
         ListElement { name: "public"; joined: false }
+    }
+
+    Connections {
+        target: backend
+        function onNotification(message) {
+            console.log("Notification received in QML:", message); // Detailed log
+            try {
+                messageBox.text += `${message}\n`;  // Append notification
+            } catch (e) {
+                console.error("Error handling notification in QML:", e);
+            }
+        }
     }
 }

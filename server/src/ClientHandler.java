@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import java.util.Map;
+import java.util.Set;
 
 import java.io.*;
 import java.net.Socket;
@@ -36,7 +37,9 @@ public class ClientHandler implements Runnable {
                 System.out.printf("DEBUG: %s's application closed.\n", username);
             }
             try {
-                clientSocket.close();
+                if (!clientSocket.isClosed()) {
+                    clientSocket.close();   
+                }
             } catch (IOException e) {
                 System.out.println("Error closing client socket: " + e.getMessage());
             }
@@ -51,7 +54,7 @@ public class ClientHandler implements Runnable {
                 String group = message.getData().getGroup();
 
                 // Check if username is already in use
-                if (!groupManager.addUserToGroup(username, group)) {
+                if (!groupManager.addUserToGroup(username, group, this)) { // Pass 'this' for ClientHandler
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
                         "message", "Username '" + username + "' is already taken"
@@ -66,6 +69,9 @@ public class ClientHandler implements Runnable {
                     "status", "success",
                     "message", "Signed in as " + username + " in group " + group
                 )));
+
+                // Get the list of users in the group and send it to the new user
+                groupManager.sendGroupUserList(username, group);
                 break;
 
             case "logout": // Handle explicit logout
@@ -79,6 +85,11 @@ public class ClientHandler implements Runnable {
                 }
                 break;
 
+            case "user_list": // Handle request for user list
+                String requestedGroup = message.getData().getGroup();
+                groupManager.sendGroupUserList(username, requestedGroup); // Send the list back to the user
+                break;
+
             case "exit": // Handle user sign-out
                 if (username != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);
@@ -89,6 +100,20 @@ public class ClientHandler implements Runnable {
 
             default:
                 writer.println(gson.toJson(Map.of("status", "error", "message", "Unknown command")));
+        }
+    }
+
+    public void sendMessage(String message) {
+        try {
+            if (message == null || message.trim().isEmpty()) {
+                System.out.printf("DEBUG: Skipping empty message for '%s'\n", username);
+                return; // Skip empty messages
+            }
+            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+            writer.println(message);
+            System.out.printf("DEBUG: Sent to '%s': %s\n", username, message);
+        } catch (IOException e) {
+            System.out.printf("ERROR: Unable to send message to '%s': %s\n", username, e.getMessage());
         }
     }
 }

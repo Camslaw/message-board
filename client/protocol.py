@@ -40,9 +40,14 @@ def receive_json(sock):
     """
     try:
         data = sock.recv(1024).decode()
+        if not data:
+            print("DEBUG: Received empty response")
+            return None
+        print(f"DEBUG: Raw data received: {data}")  # Log raw data
         return json.loads(data)
     except json.JSONDecodeError:
         print("Error decoding JSON")
+        print(f"DEBUG: Malformed JSON: {data}")  # Log problematic JSON
         return None
     except Exception as e:
         print(f"Error receiving data: {e}")
@@ -62,10 +67,12 @@ def receive_data(callbacks):
 
     while True:
         response = receive_json(client_socket)
-        if not response:
+        if response is None:
+            continue
+        elif response == {}:
             print("Connection closed by the server.")
             break
-        print(f"Server response: {response}")
+        print(f"DEBUG: Parsed response: {response}")
 
         # Handle response with callbacks
         if "status" in response:
@@ -73,6 +80,9 @@ def receive_data(callbacks):
                 callbacks["error"](response["message"])
             elif response["status"] == "success" and "success" in callbacks:
                 callbacks["success"]()
+        elif "notification" in response: # Handle broadcast notifications
+            if "notification" in callbacks:
+                callbacks["notification"](response["notification"])
 
 # This module does not start threads or run code directly.
 # Threading should be managed in `backend.py` or `main.py`.
