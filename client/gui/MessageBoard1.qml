@@ -159,23 +159,16 @@ Item {
                     background: Rectangle {
                         radius: 8
                     }
-                    text: "Send"
+                    text: "Send message"
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
-                        let validGroups = ["public"];
-                        let groupName = groupNameField.text.trim();
                         let subject = subjectField.text.trim();
                         let body = messageBodyField.text.trim();
 
-                        if (groupName === "" || subject === "" || body === "") {
-                            messageBox.text += "Error: All fields are required.\n";
-                        } else if (!validGroups.includes(groupName)) {
-                            messageBox.text += `Error: "${groupName}" is not a valid group.\n`;
+                        if (subject === "" || body === "") {
+                            messageBox.text += "Error: Subject and message body are required.\n";
                         } else {
-                            // Simulate posting the message
-                            messageBox.text += `Message posted to "${groupName}":\nSubject: ${subject}\n${body}\n\n`;
-                            // Clear fields after sending
-                            groupNameField.text = "";
+                            backend.postMessage("public", subject, body);
                             subjectField.text = "";
                             messageBodyField.text = "";
                         }
@@ -215,7 +208,7 @@ Item {
                     background: Rectangle {
                         radius: 8
                     }
-                    text: "Send"
+                    text: "Read message"
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
                         

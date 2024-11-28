@@ -90,6 +90,20 @@ public class ClientHandler implements Runnable {
                 groupManager.sendGroupUserList(username, requestedGroup); // Send the list back to the user
                 break;
 
+            case "post_message": // Handle posting a new message
+                String postGroup = message.getData().getGroup();
+                String postSubject = message.getData().getSubject();
+                String postContent = message.getData().getContent();
+
+                // Create a formatted message string
+                String postMessage = String.format("Message ID: %d, Sender: %s, Post Date: %s, Subject: %s",
+                        System.currentTimeMillis(), username, new java.util.Date(), postSubject);
+
+                // Broadcast the message to all group members
+                groupManager.broadcastMessage(postGroup, postMessage);
+                System.out.printf("DEBUG: Broadcast message to group '%s': %s\n", postGroup, postMessage);
+                break;
+
             case "exit": // Handle user sign-out
                 if (username != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);

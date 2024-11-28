@@ -81,6 +81,25 @@ class Backend(QObject):
         }
         send_json(client_socket, data)
 
+    @pyqtSlot(str, str, str)  # Slot to handle message posting
+    def postMessage(self, group, subject, content):
+        """
+        Send a post message request to the server.
+        Args:
+            group (str): Group name.
+            subject (str): Message subject.
+            content (str): Message content.
+        """
+        data = {
+            "type": "post_message",
+            "data": {
+                "group": group,
+                "subject": subject,
+                "content": content
+            }
+        }
+        send_json(client_socket, data)
+
     def cleanup(self):
         # Send a logout request when the application exits
         if client_socket:
