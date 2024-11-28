@@ -70,8 +70,8 @@ public class ClientHandler implements Runnable {
                     "message", "Signed in as " + username + " in group " + group
                 )));
 
-                // Get the list of users in the group and send it to the new user
-                groupManager.sendGroupUserList(username, group);
+                // // Get the list of users in the group and send it to the new user
+                // groupManager.sendGroupUserList(username, group);
                 break;
 
             case "logout": // Handle explicit logout

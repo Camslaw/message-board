@@ -12,6 +12,7 @@ def main():
 
     backend = Backend()
     engine.rootContext().setContextProperty("backend", backend)
+    backend.uiReady.connect(backend.handleUIReady)
 
     # Start networking threads
     backend.startReceiving()

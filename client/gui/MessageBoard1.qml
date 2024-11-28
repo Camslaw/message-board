@@ -6,6 +6,11 @@ Item {
     height: stackView.height
 
     signal signOut1()  // Signal to notify when the user wants to sign out
+    signal uiReady()
+
+    Component.onCompleted: {
+        backend.uiReady("public"); // Emit the signal when the component is fully loaded
+    }
 
     Row {
         anchors.fill: parent
@@ -49,6 +54,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     backend.handleLogoutRequestGroup();
+                    messageBox.text = ""; // Clear the message box
                     signOut1();
                 }
             }

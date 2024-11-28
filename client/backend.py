@@ -8,11 +8,21 @@ class Backend(QObject):
     loginError = pyqtSignal(str)  # Signal for login errors
     loginSuccess = pyqtSignal()
     notification = pyqtSignal(str)
+    uiReady = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
         self.running = True
         atexit.register(self.cleanup)
+
+    @pyqtSlot(str)  # Slot to handle the UI ready signal
+    def handleUIReady(self, group):
+        # Request the user list from the server once the UI is ready
+        data = {
+            "type": "user_list",
+            "data": {"group": group}
+        }
+        send_json(client_socket, data)
 
     def startReceiving(self):
         # Thread for receiving data
