@@ -57,7 +57,7 @@ public class ClientHandler implements Runnable {
                 if (!groupManager.addUserToGroup(username, group, this)) { // Pass 'this' for ClientHandler
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
-                        "message", "Username '" + username + "' is already taken"
+                        "user_state", "Username '" + username + "' is already taken"
                     )));
                     System.out.printf("DEBUG: Rejected username '%s' - already signed in.\n", username);
                     return;
@@ -67,7 +67,7 @@ public class ClientHandler implements Runnable {
 
                 writer.println(gson.toJson(Map.of(
                     "status", "success",
-                    "message", "Signed in as " + username + " in group " + group
+                    "user_state", "Signed in as " + username + " in group " + group
                 )));
 
                 // // Get the list of users in the group and send it to the new user
@@ -118,7 +118,7 @@ public class ClientHandler implements Runnable {
                 String requestedMessageId = message.getData().getContent();
                 String retrievedMessage = groupManager.getMessage(requestedMessageId);
 
-                if (retrievedMessage != null) {
+                if (retrievedMessage != null && !retrievedMessage.trim().isEmpty()) {
                     writer.println(gson.toJson(Map.of(
                         "status", "success",
                         "message", "Message ID: " + requestedMessageId + "\n" + retrievedMessage
