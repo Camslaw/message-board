@@ -72,6 +72,7 @@ public class ClientHandler implements Runnable {
 
                 // // Get the list of users in the group and send it to the new user
                 // groupManager.sendGroupUserList(username, group);
+                // groupManager.sendRecentMessagesToUser(group, this);
                 break;
 
             case "logout": // Handle explicit logout
@@ -90,18 +91,44 @@ public class ClientHandler implements Runnable {
                 groupManager.sendGroupUserList(username, requestedGroup); // Send the list back to the user
                 break;
 
-            case "post_message": // Handle posting a new message
+            case "post_message":
                 String postGroup = message.getData().getGroup();
                 String postSubject = message.getData().getSubject();
                 String postContent = message.getData().getContent();
+                String newMessageId = String.valueOf(System.currentTimeMillis()); // Unique message ID
 
-                // Create a formatted message string
-                String postMessage = String.format("Message ID: %d, Sender: %s, Post Date: %s, Subject: %s",
-                        System.currentTimeMillis(), username, new java.util.Date(), postSubject);
+                // Correctly format the message for display
+                String formattedMessage = String.format(
+                    "Message ID: %s, Sender: %s, Post Date: %s, Subject: %s",
+                    newMessageId, username, new java.util.Date(), postSubject
+                );
 
-                // Broadcast the message to all group members
-                groupManager.broadcastMessage(postGroup, postMessage);
-                System.out.printf("DEBUG: Broadcast message to group '%s': %s\n", postGroup, postMessage);
+                // Store the message for retrieval
+                groupManager.storeMessage(postGroup, newMessageId, String.format(
+                    "Sender: %s\nDate: %s\nSubject: %s\nContent: %s",
+                    username, new java.util.Date(), postSubject, postContent
+                ));
+
+                // Broadcast the formatted message
+                groupManager.broadcastMessage(postGroup, formattedMessage);
+                System.out.printf("DEBUG: Message posted to group '%s': %s\n", postGroup, formattedMessage);
+                break;
+
+            case "get_message": // Handle retrieving a message by ID
+                String requestedMessageId = message.getData().getContent();
+                String retrievedMessage = groupManager.getMessage(requestedMessageId);
+
+                if (retrievedMessage != null) {
+                    writer.println(gson.toJson(Map.of(
+                        "status", "success",
+                        "message", "Message ID: " + requestedMessageId + "\n" + retrievedMessage
+                    )));
+                } else {
+                    writer.println(gson.toJson(Map.of(
+                        "status", "error",
+                        "message", "Message not found"
+                    )));
+                }
                 break;
 
             case "exit": // Handle user sign-out

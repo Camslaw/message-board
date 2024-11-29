@@ -8,16 +8,18 @@ class Backend(QObject):
     loginError = pyqtSignal(str)  # Signal for login errors
     loginSuccess = pyqtSignal()
     notification = pyqtSignal(str)
+    messageRetrieved = pyqtSignal(str)
     uiReady = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
         self.running = True
+        # self._last_group = None
         atexit.register(self.cleanup)
 
     @pyqtSlot(str)  # Slot to handle the UI ready signal
     def handleUIReady(self, group):
-        # Request the user list from the server once the UI is ready
+        print(f"DEBUG: handleUIReady sending request for {group}")
         data = {
             "type": "user_list",
             "data": {"group": group}
@@ -33,7 +35,14 @@ class Backend(QObject):
         callbacks = {
             "error": self.loginError.emit,  # Emits an error signal for the UI
             "success": self.loginSuccess.emit,  # Emits a success signal for the UI
-            "notification": lambda msg: (print(f"DEBUG: Emitting notification: {msg}"), self.notification.emit(msg))
+            "notification": lambda msg: (
+                print(f"DEBUG: Emitting notification: {msg}"),
+                self.notification.emit(msg)
+            ),
+            "message": lambda msg: (
+                print(f"DEBUG: Emitting messageRetrieved: {msg}"),
+                self.messageRetrieved.emit(msg)
+            )
         }
         receive_data(callbacks)
 
@@ -63,6 +72,7 @@ class Backend(QObject):
             "data": {"group": "public"} # specify group to leave
         }
         send_json(client_socket, data)
+        self._last_group = None  # Reset _last_group on logout
 
     @pyqtSlot()
     def handleLogoutRequestSolo(self):
@@ -97,6 +107,19 @@ class Backend(QObject):
                 "subject": subject,
                 "content": content
             }
+        }
+        send_json(client_socket, data)
+
+    @pyqtSlot(str)
+    def getMessageById(self, message_id):
+        """
+        Retrieve a message by its ID.
+        Args:
+            message_id (str): The ID of the message.
+        """
+        data = {
+            "type": "get_message",
+            "data": {"content": message_id}
         }
         send_json(client_socket, data)
 

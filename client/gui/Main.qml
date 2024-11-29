@@ -18,7 +18,7 @@ ApplicationWindow {
         Component {
             id: loginScreen
             LoginScreen {
-                onLoginPart1: stackView.push(part1App);
+                onLoginPart1: stackView.replace(part1App);
                 onLoginPart2: stackView.push(part2App);
             }
         }

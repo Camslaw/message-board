@@ -8,6 +8,7 @@ public class GroupManager {
     private final Map<String, Set<String>> groups = new HashMap<>();
     private final Map<String, String> userToGroupMap = new HashMap<>(); // Mapping from username to group
     private final Map<String, ClientHandler> userToClientMap = new HashMap<>();
+    private final Map<String, String> messageStore = new HashMap<>();
     private final Gson gson = new Gson();
 
     public synchronized boolean addUser(String username) {
@@ -36,9 +37,12 @@ public class GroupManager {
         }
         signedInUsers.add(username);
         groups.get(group).add(username);
-        userToClientMap.put(username, handler); // Associate username with ClientHandler
+        userToClientMap.put(username, handler); // Associate username with ClientHandler 
         System.out.printf("DEBUG: User '%s' added to group '%s'.\n", username, group);
-        broadcastMessage(group, "User '" + username + "' has joined the group."); // Notify group members
+        // Send the last two messages to the new user
+
+        // Notify other users in the group
+        broadcastMessage(group, "User '" + username + "' has joined the group.");
         return true;
     }
 
@@ -55,7 +59,6 @@ public class GroupManager {
     public synchronized void broadcastMessage(String group, String message) {
         if (groups.containsKey(group)) {
             for (String member : groups.get(group)) {
-                // Send message to each member (pseudo-code)
                 sendMessageToUser(member, gson.toJson(Map.of("notification", message)));
             }
             System.out.printf("DEBUG: Broadcast to group '%s': %s\n", group, message);
@@ -86,6 +89,14 @@ public class GroupManager {
 
     public synchronized Set<String> getUsersInGroup(String group) {
         return groups.getOrDefault(group, new HashSet<>());
+    }
+
+    public synchronized void storeMessage(String group, String id, String message) {
+        messageStore.put(id, message);
+    }
+
+    public synchronized String getMessage(String id) {
+        return messageStore.get(id);
     }
 }
 

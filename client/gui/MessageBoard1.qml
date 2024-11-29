@@ -9,8 +9,14 @@ Item {
     signal uiReady()
 
     Component.onCompleted: {
-        backend.uiReady("public"); // Emit the signal when the component is fully loaded
+        if (!uiInitialized) {
+            console.log("DEBUG: Connecting to backend");
+            uiInitialized = true;
+            backend.uiReady("public");
+        }
     }
+
+    property bool uiInitialized: false
 
     Row {
         anchors.fill: parent
@@ -54,6 +60,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     backend.handleLogoutRequestGroup();
+                    uiInitialized = false;
                     messageBox.text = ""; // Clear the message box
                     signOut1();
                 }
@@ -211,7 +218,12 @@ Item {
                     text: "Read message"
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
-                        
+                        let messageId = messageBodyFieldRead.text.trim();
+                        if (messageId === "") {
+                            messageBox.text += "Error: Message ID cannot be empty.\n";
+                        } else {
+                            backend.getMessageById(messageId);
+                        }
                     }
                 }
             }
@@ -228,9 +240,34 @@ Item {
         function onNotification(message) {
             console.log("Notification received in QML:", message); // Detailed log
             try {
-                messageBox.text += `${message}\n`;  // Append notification
+                if (message.startsWith("Message ID:")) {
+                    messageBox.text += `${message}\n`;
+                } else {
+                    messageBox.text += `${message}\n`;  // Append notification
+                }
             } catch (e) {
                 console.error("Error handling notification in QML:", e);
+            }
+        }
+
+        function onMessageRetrieved(message) {
+            console.log("Message retrieved in QML:", message);  // Debug log
+            try {
+                // Split the message into lines
+                let lines = message.split("\n");
+                
+                // Extract the ID and Content from the lines
+                let idLine = lines.find(line => line.startsWith("Message ID:"));
+                let contentLine = lines.find(line => line.startsWith("Content:"));
+
+                // Extract the values
+                let messageId = idLine ? idLine.split(":")[1].trim() : "Unknown ID";
+                let content = contentLine ? contentLine.split(":")[1].trim() : "No content";
+
+                // Append the formatted message to the message box
+                messageBox.text += `Message ${messageId} content: ${content}\n`;
+            } catch (e) {
+                console.error("Error handling retrieved message in QML:", e);
             }
         }
     }

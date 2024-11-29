@@ -74,15 +74,20 @@ def receive_data(callbacks):
             break
         print(f"DEBUG: Parsed response: {response}")
 
-        # Handle response with callbacks
+        # Process 'status' field
         if "status" in response:
             if response["status"] == "error" and "error" in callbacks:
-                callbacks["error"](response["message"])
+                callbacks["error"](response.get("message", "Unknown error"))
             elif response["status"] == "success" and "success" in callbacks:
                 callbacks["success"]()
-        elif "notification" in response: # Handle broadcast notifications
-            if "notification" in callbacks:
-                callbacks["notification"](response["notification"])
+
+            # Process 'message' if it exists alongside 'status'
+            if "message" in response and "message" in callbacks:
+                callbacks["message"](response["message"])
+
+        # Process 'notification' field
+        if "notification" in response and "notification" in callbacks:
+            callbacks["notification"](response["notification"])
 
 # This module does not start threads or run code directly.
 # Threading should be managed in `backend.py` or `main.py`.
