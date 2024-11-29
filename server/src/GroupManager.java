@@ -23,11 +23,8 @@ public class GroupManager {
     }
 
     public synchronized void removeUser(String username) {
-        if (signedInUsers.remove(username)) {
-            System.out.printf("DEBUG: RemoveUser successful. Removed '%s'. Current signed-in users: %s\n", username, signedInUsers);
-        } else {
-            System.out.printf("DEBUG: RemoveUser failed. Username '%s' was not signed in.\n", username);
-        }
+        signedInUsers.remove(username);
+        userToClientMap.remove(username);
     }
 
     public synchronized boolean addUserToGroup(String username, String group, ClientHandler handler) {

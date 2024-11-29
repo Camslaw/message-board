@@ -85,11 +85,43 @@ public class ClientHandler implements Runnable {
                 // groupManager.sendRecentMessagesToUser(group, this);
                 break;
 
+            case "login2": // Handle user sign-in
+                username = message.getData().getUsername();
+
+                // Check if username is already in use
+                if (!groupManager.addUser(username)) { // Pass 'this' for ClientHandler
+                    writer.println(gson.toJson(Map.of(
+                        "status", "error",
+                        "user_state", "Username '" + username + "' is already taken"
+                    )));
+                    System.out.printf("DEBUG: Rejected username '%s' - already signed in.\n", username);
+                    return;
+                }
+                // Debug message
+                System.out.printf("DEBUG: User '%s' signed in.\n", username);
+
+                writer.println(gson.toJson(Map.of(
+                    "status", "success",
+                    "user_state", "Signed in as " + username
+                )));
+                break;
+
             case "logout": // Handle explicit logout
                 if (username != null && logoutGroup != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
                     System.out.printf("DEBUG: User '%s' logged out and left group '%s'.\n", username, logoutGroup);
+                    username = null; // Clear username to prevent double removal
+                } else {
+                    writer.println(gson.toJson(Map.of("status", "error", "message", "Logout failed: Missing data")));
+                }
+                break;
+
+            case "logout2": // Handle explicit logout
+                if (username != null) {
+                    groupManager.removeUser(username);
+                    writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
+                    System.out.printf("DEBUG: User '%s' logged out.\n", username);
                     username = null; // Clear username to prevent double removal
                 } else {
                     writer.println(gson.toJson(Map.of("status", "error", "message", "Logout failed: Missing data")));

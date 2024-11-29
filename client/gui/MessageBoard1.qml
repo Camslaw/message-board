@@ -59,7 +59,7 @@ Item {
                 text: "Sign Out (leave group and go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    backend.handleLogoutRequestGroup();
+                    backend.handleLogoutRequestGroup("public");
                     uiInitialized = false;
                     messageBox.text = ""; // Clear the message box
                     signOut1();

@@ -73,6 +73,7 @@ Item {
                     } else {
                         errorMessage.text = ""
                         partSelection = "part2";
+                        backend.current_user = usernameInput.text
                         backend.handleLoginRequest2(usernameInput.text) // Call backend directly
                     }
                 }

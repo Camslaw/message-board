@@ -117,7 +117,9 @@ Item {
                 text: "Sign Out (go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    backend.handleLogoutRequest();
+                    // conditionally choose betweeen
+                    backend.handleLogoutRequestSolo(backend.current_user);
+                    messageBox.text = ""; // Clear the message box
                     signOut2();
                 }
             }

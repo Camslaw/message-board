@@ -77,7 +77,7 @@ def receive_data(callbacks):
     while True:
         responses = receive_json(client_socket)
         if responses is None:
-            continue
+            break
         elif responses == {}:
             print("Connection closed by the server.")
             break

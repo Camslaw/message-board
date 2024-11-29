@@ -18,6 +18,8 @@ class Backend(QObject):
         self.uiInitialized = False
         # self._last_group = None
         self.messageBuffer = []  # Buffer for recent messages
+        self.current_group = None  # Tracks the current group the user is in
+        self.current_user = ""
         atexit.register(self.cleanup)
 
     @pyqtSlot(str)  # Slot to handle the UI ready signal
@@ -76,26 +78,27 @@ class Backend(QObject):
     def handleLoginRequest2(self, username):
         # Send login request to the server
         data = {
-            "type": "login",
+            "type": "login2",
             "data": {"username": username}
         }
         send_json(client_socket, data)
 
-    @pyqtSlot()
-    def handleLogoutRequestGroup(self):
+    @pyqtSlot(str)
+    def handleLogoutRequestGroup(self, group):
         # Send logout request to the server
         data = {
             "type": "logout",
-            "data": {"group": "public"} # specify group to leave
+            "data": {"group": group} # specify group to leave
         }
         send_json(client_socket, data)
         self._last_group = None  # Reset _last_group on logout
 
-    @pyqtSlot()
-    def handleLogoutRequestSolo(self):
+    @pyqtSlot(str)
+    def handleLogoutRequestSolo(self, username):
         # Send logout request to the server
         data = {
-            "type": "logout" # specify group to leave
+            "type": "logout2",
+            "data": {"username": username}
         }
         send_json(client_socket, data)
 
@@ -140,6 +143,21 @@ class Backend(QObject):
         }
         send_json(client_socket, data)
 
+    @pyqtSlot(str)
+    def handleJoinGroup(self, group):
+        self.current_group = group
+        print(f"DEBUG: Joined group {group}")
+
+    @pyqtSlot(str)
+    def handleLeaveGroup(self, group):
+        if self.current_group == group:
+            self.current_group = None
+        print(f"DEBUG: Left group {group}")
+
+    @pyqtSlot(result=bool)
+    def isInGroup(self):
+        return self.current_group is not None
+    
     def cleanup(self):
         # Send a logout request when the application exits
         if client_socket:
