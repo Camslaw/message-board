@@ -42,6 +42,10 @@ class Backend(QObject):
             "message": lambda msg: (
                 print(f"DEBUG: Emitting messageRetrieved: {msg}"),
                 self.messageRetrieved.emit(msg)
+            ),
+            "user_state": lambda msg: (
+                print(f"DEBUG: User state error: {msg}"),
+                self.loginError.emit(msg)  # Emit the error message for UI display
             )
         }
         receive_data(callbacks)

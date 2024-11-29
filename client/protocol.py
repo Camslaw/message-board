@@ -76,14 +76,17 @@ def receive_data(callbacks):
 
         # Process 'status' field
         if "status" in response:
-            if response["status"] == "error" and "error" in callbacks:
-                callbacks["error"](response.get("message", "Unknown error"))
+            if response["status"] == "error":
+                if "user_state" in response and "user_state" in callbacks:
+                    callbacks["user_state"](response["user_state"])
+                elif "error" in callbacks:
+                    callbacks["error"](response.get("message", "Unknown error"))
             elif response["status"] == "success" and "success" in callbacks:
                 callbacks["success"]()
 
-            # Process 'message' if it exists alongside 'status'
-            if "message" in response and "message" in callbacks:
-                callbacks["message"](response["message"])
+        # Process 'message' field
+        if "message" in response and "message" in callbacks:
+            callbacks["message"](response["message"])
 
         # Process 'notification' field
         if "notification" in response and "notification" in callbacks:

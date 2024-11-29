@@ -9,6 +9,7 @@ public class GroupManager {
     private final Map<String, String> userToGroupMap = new HashMap<>(); // Mapping from username to group
     private final Map<String, ClientHandler> userToClientMap = new HashMap<>();
     private final Map<String, String> messageStore = new HashMap<>();
+    private final Map<String, LinkedList<String>> recentMessages = new HashMap<>(); // Tracks the last two messages per group
     private final Gson gson = new Gson();
 
     public synchronized boolean addUser(String username) {
@@ -98,6 +99,21 @@ public class GroupManager {
     public synchronized String getMessage(String id) {
         return messageStore.get(id);
     }
+
+    public synchronized void addRecentMessage(String group, String message) {
+        recentMessages.putIfAbsent(group, new LinkedList<>());
+        LinkedList<String> groupMessages = recentMessages.get(group);
+
+        if (groupMessages.size() == 2) {
+            groupMessages.poll(); // Remove the oldest message if size exceeds two
+        }
+        groupMessages.offer(message); // Add the new message
+    }
+
+    public synchronized List<String> getRecentMessages(String group) {
+        return new ArrayList<>(recentMessages.getOrDefault(group, new LinkedList<>()));
+    }
+
 }
 
 
