@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
 import java.io.*;
 import java.net.Socket;
@@ -70,6 +71,15 @@ public class ClientHandler implements Runnable {
                     "user_state", "Signed in as " + username + " in group " + group
                 )));
 
+                // Send the last two messages in the group
+                List<String> recentMessages = groupManager.getRecentMessages(group);
+                for (String recentMessage : recentMessages) {
+                    writer.println(gson.toJson(Map.of(
+                        "type", "recent_message",
+                        "message", recentMessage
+                    )));
+                }
+
                 // // Get the list of users in the group and send it to the new user
                 // groupManager.sendGroupUserList(username, group);
                 // groupManager.sendRecentMessagesToUser(group, this);
@@ -102,6 +112,9 @@ public class ClientHandler implements Runnable {
                     "Message ID: %s, Sender: %s, Post Date: %s, Subject: %s",
                     newMessageId, username, new java.util.Date(), postSubject
                 );
+
+                // Add the message to the recent list and store it
+                groupManager.addRecentMessage(postGroup, formattedMessage);
 
                 // Store the message for retrieval
                 groupManager.storeMessage(postGroup, newMessageId, String.format(

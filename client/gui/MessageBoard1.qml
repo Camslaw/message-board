@@ -270,5 +270,10 @@ Item {
                 console.error("Error handling retrieved message in QML:", e);
             }
         }
+
+        function onRecentMessageReceived(message) {
+            console.log("Recent message received in QML:", message);
+            messageBox.text += `[Recent] ${message}\n`;
+        }
     }
 }

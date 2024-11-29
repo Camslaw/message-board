@@ -57,7 +57,7 @@ public class GroupManager {
         userToClientMap.remove(username);
     }
 
-    public synchronized void broadcastMessage(String group, String message) {
+    public synchronized void broadcastMessage(String group, String message) {        
         if (groups.containsKey(group)) {
             for (String member : groups.get(group)) {
                 sendMessageToUser(member, gson.toJson(Map.of("notification", message)));
@@ -111,6 +111,7 @@ public class GroupManager {
     }
 
     public synchronized List<String> getRecentMessages(String group) {
+        recentMessages.putIfAbsent(group, new LinkedList<>());
         return new ArrayList<>(recentMessages.getOrDefault(group, new LinkedList<>()));
     }
 

@@ -39,19 +39,28 @@ def receive_json(sock):
         dict: The parsed JSON object.
     """
     try:
-        data = sock.recv(1024).decode()
+        data = sock.recv(4096).decode()  # Adjust buffer size if needed
         if not data:
             print("DEBUG: Received empty response")
-            return None
-        print(f"DEBUG: Raw data received: {data}")  # Log raw data
-        return json.loads(data)
-    except json.JSONDecodeError:
-        print("Error decoding JSON")
-        print(f"DEBUG: Malformed JSON: {data}")  # Log problematic JSON
-        return None
+            return []
+
+        print(f"DEBUG: Raw data received: {data}")
+
+        # Split data by newline to handle multiple JSON objects
+        messages = data.strip().split("\n")
+        parsed_messages = []
+
+        for message in messages:
+            try:
+                parsed_messages.append(json.loads(message))
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {e}")
+                print(f"DEBUG: Malformed JSON: {message}")
+
+        return parsed_messages
     except Exception as e:
         print(f"Error receiving data: {e}")
-        return None
+        return []
 
 def receive_data(callbacks):
     """
@@ -66,31 +75,40 @@ def receive_data(callbacks):
         return
 
     while True:
-        response = receive_json(client_socket)
-        if response is None:
+        responses = receive_json(client_socket)
+        if responses is None:
             continue
-        elif response == {}:
+        elif responses == {}:
             print("Connection closed by the server.")
             break
-        print(f"DEBUG: Parsed response: {response}")
+        print(f"DEBUG: Parsed responses: {responses}")
 
-        # Process 'status' field
-        if "status" in response:
-            if response["status"] == "error":
-                if "user_state" in response and "user_state" in callbacks:
-                    callbacks["user_state"](response["user_state"])
-                elif "error" in callbacks:
-                    callbacks["error"](response.get("message", "Unknown error"))
-            elif response["status"] == "success" and "success" in callbacks:
-                callbacks["success"]()
+        
+        for response in responses:
+            print(f"DEBUG: Parsed response: {response}")
+            # Process specific types of responses
+            if "type" in response:
+                if response["type"] == "recent_message" and "recent_message" in callbacks:
+                    callbacks["recent_message"](response.get("message", ""))
+                continue  # Skip further processing for known types
 
-        # Process 'message' field
-        if "message" in response and "message" in callbacks:
-            callbacks["message"](response["message"])
+            # Process 'status' field
+            if "status" in response:
+                if response["status"] == "error":
+                    if "user_state" in response and "user_state" in callbacks:
+                        callbacks["user_state"](response["user_state"])
+                    elif "error" in callbacks:
+                        callbacks["error"](response.get("message", "Unknown error"))
+                elif response["status"] == "success" and "success" in callbacks:
+                    callbacks["success"]()
 
-        # Process 'notification' field
-        if "notification" in response and "notification" in callbacks:
-            callbacks["notification"](response["notification"])
+            # Process 'message' field
+            if "message" in response and "message" in callbacks:
+                callbacks["message"](response["message"])
+
+            # Process 'notification' field
+            if "notification" in response and "notification" in callbacks:
+                callbacks["notification"](response["notification"])
 
 # This module does not start threads or run code directly.
 # Threading should be managed in `backend.py` or `main.py`.

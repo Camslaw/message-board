@@ -9,12 +9,15 @@ class Backend(QObject):
     loginSuccess = pyqtSignal()
     notification = pyqtSignal(str)
     messageRetrieved = pyqtSignal(str)
+    recentMessageReceived = pyqtSignal(str)
     uiReady = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
         self.running = True
+        self.uiInitialized = False
         # self._last_group = None
+        self.messageBuffer = []  # Buffer for recent messages
         atexit.register(self.cleanup)
 
     @pyqtSlot(str)  # Slot to handle the UI ready signal
@@ -25,6 +28,12 @@ class Backend(QObject):
             "data": {"group": group}
         }
         send_json(client_socket, data)
+
+        # Flush buffered recent messages
+        print("DEBUG: Flushing buffered recent messages")
+        for message in self.messageBuffer:
+            self.recentMessageReceived.emit(message)
+        self.messageBuffer.clear()
 
     def startReceiving(self):
         # Thread for receiving data
@@ -46,6 +55,10 @@ class Backend(QObject):
             "user_state": lambda msg: (
                 print(f"DEBUG: User state error: {msg}"),
                 self.loginError.emit(msg)  # Emit the error message for UI display
+            ),
+            "recent_message": lambda msg: (
+                print(f"DEBUG: Recent message received: {msg}"),
+                self.recentMessageReceived.emit(msg) if self.uiInitialized else self.messageBuffer.append(msg)
             )
         }
         receive_data(callbacks)
