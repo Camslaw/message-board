@@ -6,6 +6,15 @@ Item {
     height: stackView.height
 
     signal signOut2()  // Signal to notify when the user wants to sign out
+    signal uiReady()
+
+    Component.onCompleted: {
+        if (!uiInitialized) {
+            console.log("DEBUG: Connecting to backend");
+            uiInitialized = true;
+            backend.uiReady(group);
+        }
+    }
 
     Row {
         anchors.fill: parent
@@ -48,8 +57,13 @@ Item {
                                 groupModel.setProperty(index, "joined", !joined)
 
                                 if (groupModel.get(index).joined) {
+                                    backend.handleJoinGroup(name);
+                                    groupModel.setProperty(index, "joined", true); // Update model locally
                                     messageBox.text += `Welcome to ${name}!\n`;
+                                    backend.requestUserList(name)
                                 } else {
+                                    backend.handleLeaveGroup(name);
+                                    groupModel.setProperty(index, "joined", false); // Update model locally
                                     messageBox.text += `You have left ${name}.\n`;
                                 }
                             }
@@ -91,17 +105,28 @@ Item {
                     background: Rectangle {
                         radius: 8
                     }
-                    text: "Check"
+                    text: "Check users in group"
                     onClicked: {
-                        let validGroups = ["general", "announcements", "homework", "networking", "wellness"];
+                        let validGroups = ["tutoring", "announcements", "homework", "networking", "wellness"];
                         let inputGroup = groupNameInput.text.trim();
 
                         if (inputGroup === "") {
                             errorMessage.text = "Please enter a group name.";
                         } else if (validGroups.includes(inputGroup)) {
-                            // Clear any previous error and display the users
-                            errorMessage.text = "";
-                            messageBox.text += `Users in ${inputGroup}: Alice, Bob, Charlie\n`;
+                            // Iterate through groupModel to find the group
+                            let groupIndex = -1;
+                            for (let i = 0; i < groupModel.count; i++) {
+                                if (groupModel.get(i).name === inputGroup) {
+                                    groupIndex = i;
+                                    break;
+                                }
+                            }
+                            if (groupIndex >= 0 && groupModel.get(groupIndex).joined) {
+                                backend.requestUserList(inputGroup);
+                                errorMessage.text = ""; // Clear previous error
+                            } else {
+                                errorMessage.text = "You must be a part of the group to check its members.";
+                            }
                         } else {
                             // Display an error message for invalid groups
                             errorMessage.text = `"${inputGroup}" is not a valid group.`;
@@ -117,9 +142,13 @@ Item {
                 text: "Sign Out (go back to login screen)"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    // conditionally choose betweeen
-                    backend.handleLogoutRequestSolo(backend.current_user);
-                    messageBox.text = ""; // Clear the message box
+                    if (backend.isInGroup()) {
+                        backend.handleLogoutRequestGroup(backend.current_group);
+                        messageBox.text = "";
+                    } else {
+                        backend.handleLogoutRequestSolo(backend.current_user);
+                        messageBox.text = "";
+                    }
                     signOut2();
                 }
             }
@@ -241,12 +270,23 @@ Item {
                     }
                 }
 
+                // Error Message Display
+                Text {
+                    id: errorSendMessage
+                    text: ""
+                    color: "red"
+                    font.pointSize: 12
+                    horizontalAlignment: Text.AlignHCenter
+                    visible: text.length > 0
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
                 // Send Button
                 Button {
                     background: Rectangle {
                         radius: 8
                     }
-                    text: "Send"
+                    text: "Send message"
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
                         let validGroups = ["tutoring", "announcements", "homework", "networking", "wellness"];
@@ -255,16 +295,28 @@ Item {
                         let body = messageBodyField.text.trim();
 
                         if (groupName === "" || subject === "" || body === "") {
-                            messageBox.text += "Error: All fields are required.\n";
+                            errorSendMessage.text = "Error: All fields are required.";
                         } else if (!validGroups.includes(groupName)) {
-                            messageBox.text += `Error: "${groupName}" is not a valid group.\n`;
+                            errorSendMessage.text = `Error: "${groupName}" is not a valid group.`;
                         } else {
-                            // Simulate posting the message
-                            messageBox.text += `Message posted to "${groupName}":\nSubject: ${subject}\n${body}\n\n`;
-                            // Clear fields after sending
-                            groupNameField.text = "";
-                            subjectField.text = "";
-                            messageBodyField.text = "";
+                            let isUserinGroup = false;
+                            for (let i = 0; i < groupModel.count; i++) {
+                                if (groupModel.get(i).name === groupName && groupModel.get(i).joined) {
+                                    isUserinGroup = true;
+                                    break;
+                                }
+                            }
+
+                            if (isUserinGroup) {
+                                backend.postMessage(groupName, subject, body);
+                                errorSendMessage.text = ""; // Clear any previous error
+                                // Clear fields after sending
+                                groupNameField.text = "";
+                                subjectField.text = "";
+                                messageBodyField.text = "";
+                            } else {
+                                errorSendMessage.text = `Error: You must be a member of "${groupName}" to post a message.`;
+                            }
                         }
                     }
                 }
@@ -319,15 +371,52 @@ Item {
                     }
                 }
 
-                // Send Button
+                // Error Message Display
+                Text {
+                    id: errorReadMessage
+                    text: ""
+                    color: "red"
+                    font.pointSize: 12
+                    horizontalAlignment: Text.AlignHCenter
+                    visible: text.length > 0
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                // Read message button
                 Button {
                     background: Rectangle {
                         radius: 8
                     }
-                    text: "Send"
+                    text: "Read message"
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
-                        
+                        let validGroups = ["tutoring", "announcements", "homework", "networking", "wellness"];
+                        let groupName = groupNameFieldRead.text.trim();
+                        let messageId = messageBodyFieldRead.text.trim();
+
+                        if (groupName === "" || messageId === "") {
+                            errorReadMessage.text = "Error: All fields are required.";
+                        } else if (!validGroups.includes(groupName)) {
+                            errorReadMessage.text = `Error: "${groupName}" is not a valid group.`;
+                        } else {
+                            let isUserinGroup = false;
+                            for (let i = 0; i < groupModel.count; i++) {
+                                if (groupModel.get(i).name === groupName && groupModel.get(i).joined) {
+                                    isUserinGroup = true;
+                                    break;
+                                }
+                            }
+
+                            if (isUserinGroup) {
+                                backend.getMessageById(messageId);
+                                errorReadMessage.text = ""; // Clear any previous error
+                                // Clear fields after sending
+                                groupNameFieldRead.text = "";
+                                messageBodyFieldRead.text = "";
+                            } else {
+                                errorReadMessage.text = `Error: You must be a member of "${groupName}" to this message.`;
+                            }
+                        }
                     }
                 }
             }
@@ -341,5 +430,51 @@ Item {
         ListElement { name: "homework"; joined: false }
         ListElement { name: "networking"; joined: false }
         ListElement { name: "wellness"; joined: false }
+    }
+
+    Connections {
+        target: backend
+        function onNotification(message) {
+            console.log("Notification received in QML:", message); // Detailed log
+            try {
+                if (message.startsWith("Message ID:")) {
+                    messageBox.text += `${message}\n`;
+                } else {
+                    messageBox.text += `${message}\n`;  // Append notification
+                }
+            } catch (e) {
+                console.error("Error handling notification in QML:", e);
+            }
+        }
+
+        function onMessageRetrieved(message) {
+        console.log("Message retrieved in QML:", message);  // Debug log
+        try {
+            // Split the message into lines
+            let lines = message.split("\n");
+            
+            // Validate if the message has both "Message ID" and "Content"
+            let idLine = lines.find(line => line.startsWith("Message ID:"));
+            let contentLine = lines.find(line => line.startsWith("Content:"));
+
+            if (idLine && contentLine) {
+                // Extract the values
+                let messageId = idLine.split(":")[1].trim();
+                let content = contentLine.split(":")[1].trim();
+
+                // Append the formatted message to the message box
+                messageBox.text += `Message ${messageId} content: ${content}\n`;
+            } else {
+                console.log("Invalid message format, ignoring.");
+            }
+        } catch (e) {
+            console.error("Error handling retrieved message in QML:", e);
+        }
+    }
+
+        function onRecentMessageReceived(message) {
+            console.log("Recent message received in QML:", message);
+            messageBox.text += `[Recent] ${message}\n`;
+        }
     }
 }

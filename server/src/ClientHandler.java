@@ -62,14 +62,15 @@ public class ClientHandler implements Runnable {
                     )));
                     System.out.printf("DEBUG: Rejected username '%s' - already signed in.\n", username);
                     return;
+                } else {
+                    // Debug message
+                    System.out.printf("DEBUG: User '%s' signed in and joined group '%s'.\n", username, group);
+                    writer.println(gson.toJson(Map.of(
+                        "status", "success",
+                        "user_state", "Signed in as " + username + " in group " + group
+                    )));
+                    groupManager.broadcastMessage(group, "User '" + username + "' has joined the group.", username);
                 }
-                // Debug message
-                System.out.printf("DEBUG: User '%s' signed in and joined group '%s'.\n", username, group);
-
-                writer.println(gson.toJson(Map.of(
-                    "status", "success",
-                    "user_state", "Signed in as " + username + " in group " + group
-                )));
 
                 // Send the last two messages in the group
                 List<String> recentMessages = groupManager.getRecentMessages(group);
@@ -141,8 +142,8 @@ public class ClientHandler implements Runnable {
 
                 // Correctly format the message for display
                 String formattedMessage = String.format(
-                    "Message ID: %s, Sender: %s, Post Date: %s, Subject: %s",
-                    newMessageId, username, new java.util.Date(), postSubject
+                    "Message ID: %s, Group: %s, Sender: %s, Post Date: %s, Subject: %s",
+                    newMessageId, postGroup, username, new java.util.Date(), postSubject
                 );
 
                 // Add the message to the recent list and store it
@@ -150,12 +151,12 @@ public class ClientHandler implements Runnable {
 
                 // Store the message for retrieval
                 groupManager.storeMessage(postGroup, newMessageId, String.format(
-                    "Sender: %s\nDate: %s\nSubject: %s\nContent: %s",
-                    username, new java.util.Date(), postSubject, postContent
+                    "Group: %s, Sender: %s\nDate: %s\nSubject: %s\nContent: %s",
+                    postGroup, username, new java.util.Date(), postSubject, postContent
                 ));
 
                 // Broadcast the formatted message
-                groupManager.broadcastMessage(postGroup, formattedMessage);
+                groupManager.broadcastMessages1(postGroup, formattedMessage);
                 System.out.printf("DEBUG: Message posted to group '%s': %s\n", postGroup, formattedMessage);
                 break;
 
@@ -172,6 +173,45 @@ public class ClientHandler implements Runnable {
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
                         "message", "Message not found"
+                    )));
+                }
+                break;
+
+            case "join_group":
+                if (username != null) {
+                    String groupToJoin = message.getData().getGroup();
+                    if (groupManager.addUserToGroup(username, groupToJoin, this)) {
+                        writer.println(gson.toJson(Map.of(
+                            "status", "success",
+                            "message", "Joined group " + groupToJoin
+                        )));
+                        // Notify other users in the group, excluding the sender
+                        groupManager.broadcastMessage(groupToJoin, "User '" + username + "' has joined the group '" + groupToJoin + "'", username);
+                    } else {
+                        writer.println(gson.toJson(Map.of(
+                            "status", "error",
+                            "message", "Failed to join group " + groupToJoin
+                        )));
+                    }
+                } else {
+                    writer.println(gson.toJson(Map.of(
+                        "status", "error",
+                        "message", "You must log in before joining a group."
+                    )));
+                }
+                break;
+
+            case "leave_group":
+                if (username != null) {
+                    groupManager.removeUserFromGroup(username, message.getData().getGroup());
+                    writer.println(gson.toJson(Map.of(
+                        "status", "success",
+                        "message", "Left group " + message.getData().getGroup()
+                    )));
+                } else {
+                    writer.println(gson.toJson(Map.of(
+                        "status", "error",
+                        "message", "You must log in before leaving a group."
                     )));
                 }
                 break;

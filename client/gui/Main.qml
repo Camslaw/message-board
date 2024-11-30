@@ -19,7 +19,7 @@ ApplicationWindow {
             id: loginScreen
             LoginScreen {
                 onLoginPart1: stackView.replace(part1App);
-                onLoginPart2: stackView.push(part2App);
+                onLoginPart2: stackView.replace(part2App);
             }
         }
 

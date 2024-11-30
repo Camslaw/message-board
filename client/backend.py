@@ -92,6 +92,8 @@ class Backend(QObject):
         }
         send_json(client_socket, data)
         self._last_group = None  # Reset _last_group on logout
+        if self.current_group == group:
+            self.current_group = None # Reset current_group on logout
 
     @pyqtSlot(str)
     def handleLogoutRequestSolo(self, username):
@@ -146,12 +148,22 @@ class Backend(QObject):
     @pyqtSlot(str)
     def handleJoinGroup(self, group):
         self.current_group = group
+        data = {
+            "type": "join_group",
+            "data": {"group": group}
+        }
+        send_json(client_socket, data)
         print(f"DEBUG: Joined group {group}")
 
     @pyqtSlot(str)
     def handleLeaveGroup(self, group):
         if self.current_group == group:
             self.current_group = None
+        data = {
+            "type": "leave_group",
+            "data": {"group": group}
+        }
+        send_json(client_socket, data)
         print(f"DEBUG: Left group {group}")
 
     @pyqtSlot(result=bool)

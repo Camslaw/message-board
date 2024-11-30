@@ -10,7 +10,22 @@ public class GroupManager {
     private final Map<String, ClientHandler> userToClientMap = new HashMap<>();
     private final Map<String, String> messageStore = new HashMap<>();
     private final Map<String, LinkedList<String>> recentMessages = new HashMap<>(); // Tracks the last two messages per group
+    private final List<String> predefinedGroups = Arrays.asList(
+        "tutoring", "announcements", "homework", "networking", "wellness"
+    );
     private final Gson gson = new Gson();
+
+    public GroupManager() {
+        // Initialize groups with predefined group names
+        for (String group : predefinedGroups) {
+            groups.put(group, new HashSet<>());
+            recentMessages.put(group, new LinkedList<>());
+        }
+    }
+
+    public synchronized List<String> getPredefinedGroups() {
+        return predefinedGroups;
+    }
 
     public synchronized boolean addUser(String username) {
         if (signedInUsers.contains(username)) {
@@ -29,7 +44,7 @@ public class GroupManager {
 
     public synchronized boolean addUserToGroup(String username, String group, ClientHandler handler) {
         groups.putIfAbsent(group, new HashSet<>());
-        if (signedInUsers.contains(username)) {
+        if (groups.get(group).contains(username)) {
             System.out.printf("DEBUG: AddUserToGroup failed. Username '%s' is already in group '%s'.\n", username, group);
             return false;
         }
@@ -38,9 +53,6 @@ public class GroupManager {
         userToClientMap.put(username, handler); // Associate username with ClientHandler 
         System.out.printf("DEBUG: User '%s' added to group '%s'.\n", username, group);
         // Send the last two messages to the new user
-
-        // Notify other users in the group
-        broadcastMessage(group, "User '" + username + "' has joined the group.");
         return true;
     }
 
@@ -48,16 +60,27 @@ public class GroupManager {
         if (groups.containsKey(group)) {
             groups.get(group).remove(username);
             System.out.printf("DEBUG: User '%s' removed from group '%s'.\n", username, group);
-            broadcastMessage(group, "User '" + username + "' has left the group.");
+            broadcastMessage(group, "User '" + username + "' has left the group.", username);
         }
         signedInUsers.remove(username);
         userToClientMap.remove(username);
     }
 
-    public synchronized void broadcastMessage(String group, String message) {        
+    public synchronized void broadcastMessages1(String group, String message) {        
         if (groups.containsKey(group)) {
             for (String member : groups.get(group)) {
                 sendMessageToUser(member, gson.toJson(Map.of("notification", message)));
+            }
+            System.out.printf("DEBUG: Broadcast to group '%s': %s\n", group, message);
+        }
+    }
+
+    public synchronized void broadcastMessage(String group, String message, String sender) {        
+        if (groups.containsKey(group)) {
+            for (String member : groups.get(group)) {
+                if (!member.equals(sender)) {
+                    sendMessageToUser(member, gson.toJson(Map.of("notification", message)));
+                }
             }
             System.out.printf("DEBUG: Broadcast to group '%s': %s\n", group, message);
         }
@@ -68,7 +91,7 @@ public class GroupManager {
             Set<String> usersInGroup = getUsersInGroup(group);
             Set<String> filteredUsers = new HashSet<>(usersInGroup);
             filteredUsers.remove(username);
-            String message = "Users in group '" + group + "': " + String.join(", ", filteredUsers);
+            String message = "Users in group '" + group + "': { " + String.join(", ", filteredUsers) + " }";
             sendMessageToUser(username, gson.toJson(Map.of("notification", message))); // Use "notification" for consistency
         } else {
             System.out.printf("DEBUG: Group '%s' does not exist. Cannot send user list to '%s'.\n", group, username);
