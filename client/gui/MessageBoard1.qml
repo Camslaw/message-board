@@ -5,12 +5,11 @@ Item {
     width: stackView.width
     height: stackView.height
 
-    signal signOut1()  // Signal to notify when the user wants to sign out
+    signal signOut1()
     signal uiReady()
 
     Component.onCompleted: {
         if (!uiInitialized) {
-            console.log("DEBUG: Connecting to backend");
             uiInitialized = true;
             backend.uiReady("public");
         }
@@ -22,7 +21,6 @@ Item {
         anchors.fill: parent
         spacing: 10
 
-        // Group List and Controls
         Column {
             id: groupColumn
             width: parent.width * 0.25
@@ -61,7 +59,7 @@ Item {
                 onClicked: {
                     backend.handleLogoutRequestGroup("public");
                     uiInitialized = false;
-                    messageBox.text = ""; // Clear the message box
+                    messageBox.text = "";
                     signOut1();
                 }
             }
@@ -73,7 +71,7 @@ Item {
                 text: "Exit"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    Qt.quit(); // Closes the application
+                    Qt.quit();
                 }
             }
         }
@@ -108,7 +106,7 @@ Item {
                         color: "#585c63"
                         radius: 8
                     }
-                    text: "Welcome to the Message Board!\n"  // Initial message
+                    text: "Welcome to the Message Board!\n"
                 }
             }
 
@@ -238,12 +236,12 @@ Item {
     Connections {
         target: backend
         function onNotification(message) {
-            console.log("Notification received in QML:", message); // Detailed log
+            console.log("Notification received in QML:", message);
             try {
                 if (message.startsWith("Message ID:")) {
                     messageBox.text += `${message}\n`;
                 } else {
-                    messageBox.text += `${message}\n`;  // Append notification
+                    messageBox.text += `${message}\n`;
                 }
             } catch (e) {
                 console.error("Error handling notification in QML:", e);
@@ -251,7 +249,6 @@ Item {
         }
 
         function onMessageRetrieved(message) {
-            console.log("Message retrieved in QML:", message);  // Debug log
             try {
                 // Split the message into lines
                 let lines = message.split("\n");

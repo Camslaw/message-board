@@ -5,7 +5,7 @@ Item {
     width: stackView.width
     height: stackView.height
 
-    signal signOut2()  // Signal to notify when the user wants to sign out
+    signal signOut2()
     signal uiReady()
 
     Component.onCompleted: {
@@ -20,7 +20,6 @@ Item {
         anchors.fill: parent
         spacing: 10
 
-        // Group List and Controls
         Column {
             id: groupColumn
             width: parent.width * 0.25
@@ -58,12 +57,12 @@ Item {
 
                                 if (groupModel.get(index).joined) {
                                     backend.handleJoinGroup(name);
-                                    groupModel.setProperty(index, "joined", true); // Update model locally
+                                    groupModel.setProperty(index, "joined", true);
                                     messageBox.text += `Welcome to ${name}!\n`;
                                     backend.requestUserList(name)
                                 } else {
                                     backend.handleLeaveGroup(name);
-                                    groupModel.setProperty(index, "joined", false); // Update model locally
+                                    groupModel.setProperty(index, "joined", false);
                                     messageBox.text += `You have left ${name}.\n`;
                                 }
                             }
@@ -71,7 +70,7 @@ Item {
                         
                         Text {
                             text: name
-                            color: joined ? "lightgreen" : "white"  // Change color if joined
+                            color: joined ? "lightgreen" : "white"  // Change color on joining/leaving
                             font.pointSize: 14
                         }
                     }
@@ -128,7 +127,6 @@ Item {
                                 errorMessage.text = "You must be a part of the group to check its members.";
                             }
                         } else {
-                            // Display an error message for invalid groups
                             errorMessage.text = `"${inputGroup}" is not a valid group.`;
                         }
                     }
@@ -195,7 +193,7 @@ Item {
                         color: "#585c63"
                         radius: 8
                     }
-                    text: "Welcome to the Message Board!\n"  // Initial message
+                    text: "Welcome to the Message Board!\n"
                 }
             }
 
@@ -226,7 +224,6 @@ Item {
                     }
                 }
 
-                // Subject Input
                 Row {
                     spacing: 10
                     Text {
@@ -248,7 +245,6 @@ Item {
                     }
                 }
 
-                // Message Body Input
                 Row {
                     spacing: 10
                     Text {
@@ -270,7 +266,6 @@ Item {
                     }
                 }
 
-                // Error Message Display
                 Text {
                     id: errorSendMessage
                     text: ""
@@ -281,7 +276,6 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
-                // Send Button
                 Button {
                     background: Rectangle {
                         radius: 8
@@ -309,7 +303,10 @@ Item {
 
                             if (isUserinGroup) {
                                 backend.postMessage(groupName, subject, body);
-                                errorSendMessage.text = ""; // Clear any previous error
+                                
+                                // Clear any previous error
+                                errorSendMessage.text = "";
+                                
                                 // Clear fields after sending
                                 groupNameField.text = "";
                                 subjectField.text = "";
@@ -327,7 +324,6 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width * 0.9
 
-                // Group Name Input
                 Row {
                     spacing: 10
                     Text {
@@ -349,7 +345,6 @@ Item {
                     }
                 }
 
-                // Message ID input
                 Row {
                     spacing: 10
                     Text {
@@ -371,7 +366,6 @@ Item {
                     }
                 }
 
-                // Error Message Display
                 Text {
                     id: errorReadMessage
                     text: ""
@@ -382,7 +376,6 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
-                // Read message button
                 Button {
                     background: Rectangle {
                         radius: 8
@@ -409,7 +402,10 @@ Item {
 
                             if (isUserinGroup) {
                                 backend.getMessageById(messageId);
-                                errorReadMessage.text = ""; // Clear any previous error
+                                
+                                // Clear any previous error
+                                errorReadMessage.text = "";
+
                                 // Clear fields after sending
                                 groupNameFieldRead.text = "";
                                 messageBodyFieldRead.text = "";
@@ -435,12 +431,11 @@ Item {
     Connections {
         target: backend
         function onNotification(message) {
-            console.log("Notification received in QML:", message); // Detailed log
             try {
                 if (message.startsWith("Message ID:")) {
                     messageBox.text += `${message}\n`;
                 } else {
-                    messageBox.text += `${message}\n`;  // Append notification
+                    messageBox.text += `${message}\n`;
                 }
             } catch (e) {
                 console.error("Error handling notification in QML:", e);
@@ -448,7 +443,6 @@ Item {
         }
 
         function onMessageRetrieved(message) {
-        console.log("Message retrieved in QML:", message);  // Debug log
         try {
             // Split the message into lines
             let lines = message.split("\n");

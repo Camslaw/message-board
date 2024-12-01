@@ -10,9 +10,6 @@ Item {
 
     property string partSelection: ""
 
-    // Mock username list
-    property var takenUsernames: ["admin", "user1", "guest"]
-
     Column {
         anchors.centerIn: parent
         spacing: 20
@@ -56,7 +53,7 @@ Item {
                     } else {
                         errorMessage.text = ""
                         partSelection = "part1";
-                        backend.handleLoginRequest1(usernameInput.text, "public") // Call backend directly
+                        backend.handleLoginRequest1(usernameInput.text, "public")
                     }
                 }
             }
@@ -74,7 +71,7 @@ Item {
                         errorMessage.text = ""
                         partSelection = "part2";
                         backend.current_user = usernameInput.text
-                        backend.handleLoginRequest2(usernameInput.text) // Call backend directly
+                        backend.handleLoginRequest2(usernameInput.text)
                     }
                 }
             }
@@ -84,7 +81,7 @@ Item {
                 }
                 text: "Exit"
                 onClicked: {
-                    Qt.quit(); // Closes the application
+                    Qt.quit();
                 }
             }
         }
@@ -92,7 +89,6 @@ Item {
     Connections {
         target: backend
 
-        // Display error message from backend
         function onLoginError(message) {
             errorMessage.text = message;
         }

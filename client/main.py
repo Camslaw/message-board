@@ -1,12 +1,19 @@
 import sys
 import os
+
+# Set the style for Qt Quick Controls to "Fusion" more customizability
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Fusion"
+
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtQml import QQmlApplicationEngine
 from protocol import client_socket
 from backend import Backend
 
 def main():
+    """
+    Main entry point for the application.
+    Sets up the QML engine, integrates the backend, and starts the app event loop.
+    """
     app = QGuiApplication(sys.argv)
     engine = QQmlApplicationEngine()
 
@@ -25,7 +32,6 @@ def main():
     exit_code = app.exec()
     backend.running = False
     backend.cleanup()
-    # Clean up socket and threads
     client_socket.close()
     del engine
     sys.exit(exit_code)
