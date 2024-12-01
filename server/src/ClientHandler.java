@@ -187,6 +187,14 @@ public class ClientHandler implements Runnable {
                         )));
                         // Notify other users in the group, excluding the sender
                         groupManager.broadcastMessage(groupToJoin, "User '" + username + "' has joined the group '" + groupToJoin + "'", username);
+                        // Send the last two messages in the group
+                        List<String> recentMessages2 = groupManager.getRecentMessages(groupToJoin);
+                        for (String recentMessage : recentMessages2) {
+                            writer.println(gson.toJson(Map.of(
+                                "type", "recent_message2",
+                                "message2", recentMessage
+                            )));
+                        }
                     } else {
                         writer.println(gson.toJson(Map.of(
                             "status", "error",

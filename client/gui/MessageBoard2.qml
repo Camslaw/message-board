@@ -472,7 +472,7 @@ Item {
         }
     }
 
-        function onRecentMessageReceived(message) {
+        function onRecentMessageReceived2(message) {
             console.log("Recent message received in QML:", message);
             messageBox.text += `[Recent] ${message}\n`;
         }

@@ -90,6 +90,8 @@ def receive_data(callbacks):
             if "type" in response:
                 if response["type"] == "recent_message" and "recent_message" in callbacks:
                     callbacks["recent_message"](response.get("message", ""))
+                elif response["type"] == "recent_message2" and "recent_message2" in callbacks:
+                    callbacks["recent_message2"](response.get("message2", ""))
                 continue  # Skip further processing for known types
 
             # Process 'status' field

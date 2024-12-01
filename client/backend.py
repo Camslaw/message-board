@@ -10,6 +10,7 @@ class Backend(QObject):
     notification = pyqtSignal(str)
     messageRetrieved = pyqtSignal(str)
     recentMessageReceived = pyqtSignal(str)
+    recentMessageReceived2 = pyqtSignal(str)
     uiReady = pyqtSignal(str)
 
     def __init__(self):
@@ -61,6 +62,10 @@ class Backend(QObject):
             "recent_message": lambda msg: (
                 print(f"DEBUG: Recent message received: {msg}"),
                 self.recentMessageReceived.emit(msg) if self.uiInitialized else self.messageBuffer.append(msg)
+            ),
+            "recent_message2": lambda msg: (
+                print(f"DEBUG: Recent message received: {msg}"),
+                self.recentMessageReceived2.emit(msg)
             )
         }
         receive_data(callbacks)
