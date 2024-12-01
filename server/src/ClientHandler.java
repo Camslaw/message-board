@@ -8,12 +8,30 @@ import java.util.List;
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * The ClientHandler class manages communication with a single client connected to the server.
+ * It processes incoming messages, handles user requests, and interacts with the GroupManager
+ * to manage group memberships, messages, and user states.
+ *
+ * Responsibilities:
+ * - Listens for incoming client messages over a socket.
+ * - Parses messages as JSON and handles requests based on their type (e.g., login, logout, join_group).
+ * - Sends responses and notifications back to the client.
+ * - Manages the client's session, including cleanup upon disconnection.
+ *
+ * Key Features:
+ * - Uses Gson for JSON serialization and deserialization.
+ * - Maintains a reference to the associated GroupManager for shared state and group operations.
+ * - Runs on its own thread, allowing the server to handle multiple clients concurrently.
+ */
+
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private final GroupManager groupManager;
     private final Gson gson = new Gson();
     private String username;
 
+    // Constructor to initialize the client handler with a socket and group manager
     public ClientHandler(Socket socket, GroupManager manager) {
         this.clientSocket = socket;
         this.groupManager = manager;
@@ -21,12 +39,14 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
+        // Try-with-resources ensures streams are closed automatically
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
+            // Process incoming data from the client
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.printf("DEBUG: Raw data received: %s\n", line); // Log raw input
+                System.out.printf("DEBUG: Raw data received: %s\n", line);
                 Message message = gson.fromJson(line, Message.class);
                 handleRequest(message, writer);
             }
@@ -48,14 +68,17 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleRequest(Message message, PrintWriter writer) {
-        String logoutGroup = message.getData().getGroup(); // Get group name
+        // Extract the group name for operations that require it
+        String logoutGroup = message.getData().getGroup();
+
+        // Determine the type of request and handle it
         switch (message.getType()) {
-            case "login": // Handle user sign-in
+            case "login": // Only used for Part 1
                 username = message.getData().getUsername();
                 String group = message.getData().getGroup();
 
-                // Check if username is already in use
-                if (!groupManager.addUserToGroup(username, group, this)) { // Pass 'this' for ClientHandler
+                // Add the user to the group, and send error/success response
+                if (!groupManager.addUserToGroup(username, group, this)) {
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
                         "user_state", "Username '" + username + "' is already taken"
@@ -63,7 +86,6 @@ public class ClientHandler implements Runnable {
                     System.out.printf("DEBUG: Rejected username '%s' - already signed in.\n", username);
                     return;
                 } else {
-                    // Debug message
                     System.out.printf("DEBUG: User '%s' signed in and joined group '%s'.\n", username, group);
                     writer.println(gson.toJson(Map.of(
                         "status", "success",
@@ -72,7 +94,7 @@ public class ClientHandler implements Runnable {
                     groupManager.broadcastMessage(group, "User '" + username + "' has joined the group.", username);
                 }
 
-                // Send the last two messages in the group
+                // Send recent messages from the group to the client
                 List<String> recentMessages = groupManager.getRecentMessages(group);
                 for (String recentMessage : recentMessages) {
                     writer.println(gson.toJson(Map.of(
@@ -80,17 +102,12 @@ public class ClientHandler implements Runnable {
                         "message", recentMessage
                     )));
                 }
-
-                // // Get the list of users in the group and send it to the new user
-                // groupManager.sendGroupUserList(username, group);
-                // groupManager.sendRecentMessagesToUser(group, this);
                 break;
-
-            case "login2": // Handle user sign-in
+            
+            case "login2": // This is used for Part 2. It logs in the user without automatically putting them in a group
                 username = message.getData().getUsername();
 
-                // Check if username is already in use
-                if (!groupManager.addUser(username)) { // Pass 'this' for ClientHandler
+                if (!groupManager.addUser(username)) {
                     writer.println(gson.toJson(Map.of(
                         "status", "error",
                         "user_state", "Username '" + username + "' is already taken"
@@ -107,18 +124,18 @@ public class ClientHandler implements Runnable {
                 )));
                 break;
 
-            case "logout": // Handle explicit logout
+            case "logout": // Used to log out while the user in a group
                 if (username != null && logoutGroup != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
                     System.out.printf("DEBUG: User '%s' logged out and left group '%s'.\n", username, logoutGroup);
-                    username = null; // Clear username to prevent double removal
+                    username = null;
                 } else {
                     writer.println(gson.toJson(Map.of("status", "error", "message", "Logout failed: Missing data")));
                 }
                 break;
 
-            case "logout2": // Handle explicit logout
+            case "logout2": // Used to log out if the user is not in a group (Only needed for Part 2)
                 if (username != null) {
                     groupManager.removeUser(username);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Logged out successfully")));
@@ -129,16 +146,18 @@ public class ClientHandler implements Runnable {
                 }
                 break;
 
-            case "user_list": // Handle request for user list
+            case "user_list":
+                // Send a list of users in a group
                 String requestedGroup = message.getData().getGroup();
-                groupManager.sendGroupUserList(username, requestedGroup); // Send the list back to the user
+                groupManager.sendGroupUserList(username, requestedGroup);
                 break;
 
             case "post_message":
+                // Post a message to a group
                 String postGroup = message.getData().getGroup();
                 String postSubject = message.getData().getSubject();
                 String postContent = message.getData().getContent();
-                String newMessageId = String.valueOf(System.currentTimeMillis()); // Unique message ID
+                String newMessageId = String.valueOf(System.currentTimeMillis()); // using current millis to generate unique message ID
 
                 // Correctly format the message for display
                 String formattedMessage = String.format(
@@ -146,10 +165,10 @@ public class ClientHandler implements Runnable {
                     newMessageId, postGroup, username, new java.util.Date(), postSubject
                 );
 
-                // Add the message to the recent list and store it
+                // Add the message to the recent list and store it (for the 2 recent messages feature)
                 groupManager.addRecentMessage(postGroup, formattedMessage);
 
-                // Store the message for retrieval
+                // Store the message for retrieval (for the read message feature)
                 groupManager.storeMessage(postGroup, newMessageId, String.format(
                     "Group: %s, Sender: %s\nDate: %s\nSubject: %s\nContent: %s",
                     postGroup, username, new java.util.Date(), postSubject, postContent
@@ -160,7 +179,7 @@ public class ClientHandler implements Runnable {
                 System.out.printf("DEBUG: Message posted to group '%s': %s\n", postGroup, formattedMessage);
                 break;
 
-            case "get_message": // Handle retrieving a message by ID
+            case "get_message": // Retrieves a message by Id, so we can read messages
                 String requestedMessageId = message.getData().getContent();
                 String retrievedMessage = groupManager.getMessage(requestedMessageId);
 
@@ -178,6 +197,7 @@ public class ClientHandler implements Runnable {
                 break;
 
             case "join_group":
+                // Join a group
                 if (username != null) {
                     String groupToJoin = message.getData().getGroup();
                     if (groupManager.addUserToGroup(username, groupToJoin, this)) {
@@ -187,7 +207,8 @@ public class ClientHandler implements Runnable {
                         )));
                         // Notify other users in the group, excluding the sender
                         groupManager.broadcastMessage(groupToJoin, "User '" + username + "' has joined the group '" + groupToJoin + "'", username);
-                        // Send the last two messages in the group
+                        
+                        // Send the most recent two messages in the group
                         List<String> recentMessages2 = groupManager.getRecentMessages(groupToJoin);
                         for (String recentMessage : recentMessages2) {
                             writer.println(gson.toJson(Map.of(
@@ -224,7 +245,7 @@ public class ClientHandler implements Runnable {
                 }
                 break;
 
-            case "exit": // Handle user sign-out
+            case "exit": // Handle user log out when client is closed
                 if (username != null) {
                     groupManager.removeUserFromGroup(username, logoutGroup);
                     writer.println(gson.toJson(Map.of("status", "success", "message", "Goodbye!")));
@@ -237,6 +258,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    // This sends a message to the client
     public void sendMessage(String message) {
         try {
             if (message == null || message.trim().isEmpty()) {
