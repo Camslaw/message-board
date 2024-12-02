@@ -226,6 +226,21 @@ public class GroupManager {
         return new ArrayList<>(recentMessages.getOrDefault(group, new LinkedList<>()));
     }
 
+    /**
+     * Retrieves the list of groups that a user is currently a member of.
+     * @param username The username of the user.
+     * @return A list of group names the user is a member of.
+     */
+    public synchronized List<String> getGroupsForUser(String username) {
+        List<String> userGroups = new ArrayList<>();
+        for (Map.Entry<String, Set<String>> entry : groups.entrySet()) {
+            if (entry.getValue().contains(username)) {
+                userGroups.add(entry.getKey());
+            }
+        }
+        return userGroups;
+}
+
 }
 
 

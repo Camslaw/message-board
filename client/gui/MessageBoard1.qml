@@ -26,6 +26,12 @@ Item {
             width: parent.width * 0.25
             spacing: 10
 
+            Rectangle {
+                width: 1
+                height: 60
+                color: "transparent"
+            }
+
             Text {
                 id: errorMessage
                 text: ""

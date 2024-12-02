@@ -63,8 +63,6 @@ Item {
                 onClicked: {
                     if (usernameInput.text === "") {
                         errorMessage.text = "Username cannot be empty."
-                    } else if (takenUsernames.includes(usernameInput.text)) {
-                        errorMessage.text = "Username already taken."
                     } else {
                         errorMessage.text = ""
                         partSelection = "part2";

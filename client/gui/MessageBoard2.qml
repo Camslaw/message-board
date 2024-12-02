@@ -6,15 +6,15 @@ Item {
     height: stackView.height
 
     signal signOut2()
-    signal uiReady()
+    // signal uiReady()
 
-    Component.onCompleted: {
-        if (!uiInitialized) {
-            console.log("DEBUG: Connecting to backend");
-            uiInitialized = true;
-            backend.uiReady(group);
-        }
-    }
+    // Component.onCompleted: {
+    //     if (!uiInitialized) {
+    //         console.log("DEBUG: Connecting to backend");
+    //         uiInitialized = true;
+    //         backend.uiReady(group);
+    //     }
+    // }
 
     Row {
         anchors.fill: parent
