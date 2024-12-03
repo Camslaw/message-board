@@ -13,7 +13,6 @@ PYTHON_MAIN = client/main.py
 all: server client
 
 server:
-	mkdir -p $(JAVA_BUILD_DIR)
 	javac -cp "$(JAVA_CLASSPATH)" $(JAVA_SRC_DIR)/*.java -d $(JAVA_BUILD_DIR)
 
 run-server: server
