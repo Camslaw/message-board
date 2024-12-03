@@ -49,7 +49,7 @@ This project implements a simple bulletin board system for **CS4065: Computer Ne
 ### Without Makefile
 
 #### Start the server
-1. Navigate to the project directory:
+1. Navigate to the 'message-board' directory:
 2. Compile the Java code:  
     ```javac -cp "server/lib/gson-2.11.1-SNAPSHOT.jar" server/src/*.java -d server/build```
 3.  Start the server:  
@@ -63,16 +63,16 @@ This project implements a simple bulletin board system for **CS4065: Computer Ne
 
 ### With Makefile (Optional)
 
-Navigate to the project directory (message-board)
-
 #### Start the server
 
-   1. Enter the command:  
+   1. Navigate to the 'message-board' directory
+   2. Enter the command:  
     ```make start-server```
 
 #### Start the client
 
-   1. Enter the command:  
+   1. Navigate to the 'message-board' directory
+   2. Enter the command:  
     ```make run-client```  
 
 Note: For Windows users, You can use the Chocolatey package manager to install make.
