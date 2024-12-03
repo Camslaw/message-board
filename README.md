@@ -27,7 +27,12 @@ This project implements a simple bulletin board system for **CS4065: Computer Ne
     and
     ```javac --version```
 
-## How to Run
+## Usage
+With the provided Makefile:
+   If you are in the message-board directory, you can run the following commands: 
+   1. To build and run the server: make start-server
+   2. To start an instance of the client: make run-client
+   Note: For Windows users, Use the Chocolatey package manager to install make.
 
 ### Start the server
 1. Navigate to the project directory:
