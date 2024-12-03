@@ -8,6 +8,21 @@
 ## Introduction
 This project implements a simple bulletin board system for **CS4065: Computer Networks and Networked Computing** at the **University of Cincinnati**. The system is built using **Java** for the server and **Python with PyQt6** for the client. The project demonstrates socket programming and basic client-server communication.
 
+## Architecture Overview
+ - Client-Server Communication: The client communicates with the server using a JSON-based protocol over a TCP socket.
+ - Server: Handles all backend operations, including user management, group management, and message broadcasting.
+ - Client: Provides a user-friendly GUI for interacting with the server. Utilizes signals and slots in PyQt6 to handle real-time updates and notifications.
+
+## Technical Details
+1. Server
+    a. Listens on port 12345 for incoming connections.
+    b. Utilizes a thread pool for managing client handlers.
+    c. Implements group and message management with Java Collections Framework.
+2. Client
+    a. Communicates with the server using a custom JSON protocol.
+    b. Handles real-time updates using multi-threading.
+    c. Provides a PyQt6-based GUI for user interactions.
+
 ## Prerequisites
 
 ### Python Setup
