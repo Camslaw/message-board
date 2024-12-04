@@ -68,6 +68,20 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleRequest(Message message, PrintWriter writer) {
+        if (message == null) {
+            System.out.println("DEBUG: Received null message. Skipping processing.");
+            return;
+        }
+
+        // Validate message data
+        if (message.getData() == null) {
+            System.out.println("DEBUG: Message data is null. Skipping processing.");
+            writer.println(gson.toJson(Map.of(
+                "status", "error",
+                "message", "Invalid message format: Missing data"
+            )));
+            return;
+        }
         // Extract the group name for operations that require it
         String logoutGroup = message.getData().getGroup();
 
