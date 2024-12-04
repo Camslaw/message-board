@@ -83,3 +83,7 @@ Note: For Windows users, You can use the Chocolatey package manager to install m
 - Ensure the **server** is running before starting the **client**
 - Both the client and server must be on the same network for proper communication. For now, they are both setup to communicate via localhost.
 - The server uses **Gson** for JSON handling, located in `server/lib/`.
+
+### Issues
+- The message box does not automatically scroll down when new text appears when the messagebox is full, so you have to do so manually. Ideally it
+should auto scroll. If I had more time to work on this, I probably could have found an easy fix in QML.
